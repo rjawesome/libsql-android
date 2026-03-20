@@ -45,8 +45,7 @@ android {
         minSdk = 21
         consumerProguardFiles("consumer-rules.pro")
 
-        // follow AGP 8.4 default: https://developer.android.com/build/releases/gradle-plugin#compatibility
-        ndkVersion = "26.1.10909125"
+        ndkVersion = "30.0.14904198"
 
         ndk {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
@@ -65,7 +64,6 @@ android {
         }
     }
 
-    // follow AGP 8.4 default: https://developer.android.com/build/releases/gradle-plugin#compatibility
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -101,15 +99,14 @@ cargo {
     module = "./src/main/rust/"
     libname = "libsql_android"
     targets = listOf("arm", "arm64", "x86", "x86_64")
+        
     exec = { spec, _ ->
         spec.environment("ANDROID_NDK_HOME", android.ndkDirectory.path)
-
-        // default clang version for NDK 26.1.10909125, NDK 27^ uses 18
         spec.environment("NDK_CLANG_VERSION", 17)
+        spec.environment("RUSTFLAGS", "-C link-arg=-Wl,-z,max-page-size=16384")
     }
 }
 
-// taken from https://github.com/firezone/firezone/blob/e856dc5eb2052eff48212b94a6ebf86b2c1e67df/kotlin/android/app/build.gradle.kts#L247-L250
 tasks.matching { it.name.matches(Regex("merge.*JniLibFolders")) }.configureEach {
     inputs.dir(layout.buildDirectory.file("rustJniLibs/android"))
     dependsOn("cargoBuild")
@@ -117,14 +114,13 @@ tasks.matching { it.name.matches(Regex("merge.*JniLibFolders")) }.configureEach 
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:3.17.3"
+        // Upgraded to latest stable 4.x release
+        artifact = "com.google.protobuf:protoc:4.28.2"
     }
     generateProtoTasks {
         all().forEach { task ->
             task.builtins {
-                id("java") {
-                    java { }
-                }
+                id("java")
             }
         }
     }
@@ -143,7 +139,7 @@ spotless {
         ktlint()
     }
     kotlinGradle {
-        target("*.gradle.kts") // default target for kotlinGradle
+        target("*.gradle.kts")
         ktlint()
     }
 }
@@ -163,30 +159,25 @@ publishing {
             pom {
                 name = artifactId
                 description = "Java bindings for libSQL"
-
                 url = "https://github.com/tursodatabase/libsql-android"
-
                 licenses {
                     license {
                         name = "The MIT License"
                         url = "https://opensource.org/license/MIT"
                     }
                 }
-
                 developers {
                     developer {
                         id = "haaawk"
                         name = "Piotr Jastrzebski"
                         email = "piotr@turso.tech"
                     }
-
                     developer {
                         id = "levydsa"
                         name = "Levy Albuquerque"
                         email = "levy@turso.tech"
                     }
                 }
-
                 scm {
                     connection = "scm:git:git://github.com/tursodatabase/libsql_android.git"
                     developerConnection = "scm:git:ssh://github.com:tursodatabase/libsql_android.git"
@@ -211,14 +202,4 @@ signing {
 
 tasks.withType<AbstractPublishToMaven>().configureEach {
     dependsOn(tasks.withType<Sign>())
-}
-
-val sonatypeUsername: String by project
-val sonatypePassword: String by project
-
-centralPortalPlus {
-    url = local
-    username = sonatypeUsername
-    password = sonatypePassword
-    publishingType = BaseCentralPortalPlusExtension.PublishingType.AUTOMATIC
 }

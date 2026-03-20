@@ -1,3 +1,10 @@
+# Rebuilt stuff
+- Follow the instructions from CONTRIBUTING.md to build yourself (or I also built it for you!)
+- If you want to use my build, copy the file "libsql-release.aar" to your project's "apps/libs" directory
+- Add the line `protobufJava = "4.28.2"` under dependencies and `protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobufJava" }` under libraries in your gradle/libs.versons.toml file
+- Add the lines `implementation(files("libs/libsql-release.aar"))` and `implementation(libs.protobuf.java)` to your app's build.gradle (the one in app directory) file under dependencies (and remove any existing libsql/tursodb dependencies)
+- You should be good to go!
+
 <p align="center">
   <a href="https://tur.so/turso-android">
     <picture>

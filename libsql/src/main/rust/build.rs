@@ -11,7 +11,7 @@ fn main() {
         .default_package_filename("proto")
         .compile_protos(&["../proto/libsql.proto"], &["../proto"])
         .unwrap();
-    setup_x86_64_android_workaround();
+    //setup_x86_64_android_workaround();
 }
 
 /// Adds a temporary workaround for an issue with the Rust compiler and Android
